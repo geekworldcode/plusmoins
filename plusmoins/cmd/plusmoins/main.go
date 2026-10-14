@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-
 	"plusmoins/internal/game"
 	"plusmoins/internal/parser"
 	"plusmoins/internal/score"
@@ -19,50 +18,34 @@ import (
 
 func main() {
 	var max = flag.Int("max", 100, "la borne haute de la valeur à deviner (int)")
-	secret := flag.Int("secret", 0, "nombre secret imposé pour les tests (0 : tirage au hasard)")
-	recordFile := flag.String("record", "record.txt", "fichier du record")
+	var secret = flag.Int("secret", 0, "nombre secret imposé pour les tests (0 : tirage au hasard)")
+	var recordFile = flag.String("record", "record.txt", "fichier du record")
 	flag.Parse()
-
-	if *max < 1 {
-		fatal(fmt.Errorf("-max doit valoir au moins 1, reçu %d", *max))
+	if *max < 1 || *secret < 0 || *secret > *max {
+		quit(fmt.Errorf("options invalides : -max %d, -secret %d", *max, *secret))
 	}
-	if *secret < 0 || *secret > *max {
-		fatal(fmt.Errorf("-secret doit être compris entre 1 et %d, reçu %d", *max, *secret))
-	}
-
 	g := game.New(*max)
 	if *secret > 0 {
 		g = game.NewWithSecret(*secret)
 	}
-
-	if err := play(g, *max, *recordFile); err != nil && !errors.Is(err, parser.ErrQuit) {
-		fatal(err)
-	}
-}
-
-func play(g *game.Game, max int, recordFile string) error {
-	best, err := score.Load(recordFile)
+	best, err := score.Load(*recordFile)
 	if err != nil {
-		return err
+		quit(err)
 	}
-
-	welcomeui.Welcome(max)
+	welcomeui.Welcome(*max)
 	if best > 0 {
 		fmt.Printf("Record actuel : %d essais.\n", best)
 	}
 
 	for {
 		text, err := askui.Ask()
-		if errors.Is(err, io.EOF) {
-			return parser.ErrQuit
-		}
 		if err != nil {
-			return err
+			quit(err)
 		}
 
-		n, err := parser.ParseGuess(text, max)
+		n, err := parser.ParseGuess(text, *max)
 		if errors.Is(err, parser.ErrQuit) {
-			return err
+			quit(err)
 		}
 		if err != nil {
 			errorui.ShowError(err)
@@ -74,16 +57,19 @@ func play(g *game.Game, max int, recordFile string) error {
 
 		if result == game.Win {
 			if best == 0 || g.Attempts < best {
-				if err := score.Save(recordFile, g.Attempts); err != nil {
-					return err
+				if err := score.Save(*recordFile, g.Attempts); err != nil {
+					quit(err)
 				}
 			}
-			return parser.ErrQuit
+			quit(parser.ErrQuit)
 		}
 	}
 }
 
-func fatal(err error) {
+func quit(err error) {
+	if errors.Is(err, parser.ErrQuit) || errors.Is(err, io.EOF) {
+		os.Exit(0)
+	}
 	fatalui.ShowFatal(err)
 	os.Exit(1)
 }
