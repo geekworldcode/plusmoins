@@ -30,16 +30,23 @@ func main() {
 		fatal(fmt.Errorf("-secret doit être compris entre 1 et %d, reçu %d", *max, *secret))
 	}
 
-	best, err := score.Load(*recordFile)
-	if err != nil {
-		fatal(err)
-	}
-
 	g := game.New(*max)
 	if *secret > 0 {
 		g = game.NewWithSecret(*secret)
 	}
-	welcomeui.Welcome(*max)
+
+	if err := play(g, *max, *recordFile); err != nil && !errors.Is(err, parser.ErrQuit) {
+		fatal(err)
+	}
+}
+
+func play(g *game.Game, max int, recordFile string) error {
+	best, err := score.Load(recordFile)
+	if err != nil {
+		return err
+	}
+
+	welcomeui.Welcome(max)
 	if best > 0 {
 		fmt.Printf("Record actuel : %d essais.\n", best)
 	}
@@ -47,15 +54,15 @@ func main() {
 	for {
 		text, err := askui.Ask()
 		if errors.Is(err, io.EOF) {
-			return
+			return parser.ErrQuit
 		}
 		if err != nil {
-			fatal(err)
+			return err
 		}
 
-		n, err := parser.ParseGuess(text, *max)
+		n, err := parser.ParseGuess(text, max)
 		if errors.Is(err, parser.ErrQuit) {
-			return
+			return err
 		}
 		if err != nil {
 			errorui.ShowError(err)
@@ -67,11 +74,11 @@ func main() {
 
 		if result == game.Win {
 			if best == 0 || g.Attempts < best {
-				if err := score.Save(*recordFile, g.Attempts); err != nil {
-					fatal(err)
+				if err := score.Save(recordFile, g.Attempts); err != nil {
+					return err
 				}
 			}
-			return
+			return parser.ErrQuit
 		}
 	}
 }
