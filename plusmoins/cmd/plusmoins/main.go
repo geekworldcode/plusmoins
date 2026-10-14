@@ -10,12 +10,16 @@ import (
 	"plusmoins/internal/game"
 	"plusmoins/internal/parser"
 	"plusmoins/internal/score"
-	ui "plusmoins/internal/ui/console"
+	askui "plusmoins/internal/ui/console/ask"
+	errorui "plusmoins/internal/ui/console/showerror"
+	fatalui "plusmoins/internal/ui/console/showfatal"
+	resultui "plusmoins/internal/ui/console/showresult"
+	welcomeui "plusmoins/internal/ui/console/welcome"
 )
 
 func main() {
-	max := flag.Int("max", 100, "borne haute du nombre secret")
-	secret := flag.Int("secret", 0, "nombre secret imposé, pour les tests (0 : tirage au hasard)")
+	var max = flag.Int("max", 100, "la borne haute de la valeur à deviner (int)")
+	secret := flag.Int("secret", 0, "nombre secret imposé pour les tests (0 : tirage au hasard)")
 	recordFile := flag.String("record", "record.txt", "fichier du record")
 	flag.Parse()
 
@@ -31,24 +35,21 @@ func main() {
 		fatal(err)
 	}
 
-	var g *game.Game
+	g := game.New(*max)
 	if *secret > 0 {
 		g = game.NewWithSecret(*secret)
-	} else {
-		g = game.New(*max)
 	}
-
-	ui.Welcome(*max)
+	welcomeui.Welcome(*max)
 	if best > 0 {
-		ui.ShowRecord(best)
+		fmt.Printf("Record actuel : %d essais.\n", best)
 	}
 
 	for {
-		text, err := ui.Ask()
+		text, err := askui.Ask()
+		if errors.Is(err, io.EOF) {
+			return
+		}
 		if err != nil {
-			if errors.Is(err, io.EOF) {
-				return
-			}
 			fatal(err)
 		}
 
@@ -57,12 +58,12 @@ func main() {
 			return
 		}
 		if err != nil {
-			ui.ShowError(err)
+			errorui.ShowError(err)
 			continue
 		}
 
 		result := g.Guess(n)
-		ui.ShowResult(result, g.Attempts)
+		resultui.ShowResult(result, g.Attempts)
 
 		if result == game.Win {
 			if best == 0 || g.Attempts < best {
@@ -76,6 +77,6 @@ func main() {
 }
 
 func fatal(err error) {
-	ui.ShowFatal(err)
+	fatalui.ShowFatal(err)
 	os.Exit(1)
 }

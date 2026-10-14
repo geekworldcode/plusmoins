@@ -2,9 +2,10 @@ package parser
 
 import (
 	"errors"
+	"strings"
 	"fmt"
 	"strconv"
-	"strings"
+
 )
 
 var (

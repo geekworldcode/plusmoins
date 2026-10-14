@@ -31,9 +31,6 @@ Pendant la partie, taper `q`, `quit` ou `quitter` (quelle que soit la casse)
 quitte le jeu. Une saisie vide, non numérique ou hors de `1-max` est refusée et
 le nombre est redemandé sans compter d'essai.
 
-Pour changer d'affichage, remplacer l'import de `internal/ui/console` par
-`internal/ui/color` dans `cmd/plusmoins/main.go`.
-
 ## Tests
 
 ```
@@ -59,9 +56,7 @@ plusmoins/
 │   ├── game/          règles et état
 │   ├── parser/        analyse des saisies
 │   ├── score/         record sur disque
-│   └── ui/
-│       ├── console/   entrées et affichage simples
-│       └── color/     même interface, avec des couleurs
-├── testdata/          saisies pièges et sortie attendue
+│   └── ui/console/    entrées et affichage (un package par fonction, plus color)
+├── testdata/          saisies pièges et sortie attendue (avec les codes couleur ANSI)
 └── README.md
 ```

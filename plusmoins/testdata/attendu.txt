@@ -1,9 +1,10 @@
-J'ai choisi un nombre entre 1 et 100. Tape q pour quitter.
+Bonjour vous jouez au jeu du plus ou moins ! Vous devez trouver un nombre entre 1 et 100 
 Ton nombre : saisie vide
 Ton nombre : "abc" n'est pas un nombre
 Ton nombre : 150 hors limites (1-100)
-Ton nombre : C'est moins !
+Ton nombre : [31mC'est moins ![0m
 Ton nombre : -3 hors limites (1-100)
 Ton nombre : "3.5" n'est pas un nombre
-Ton nombre : C'est plus !
-Ton nombre : Trouvé en 3 essais !
+Ton nombre : [31mC'est plus ![0m
+Ton nombre : [33mTrouvé en 3 essais !
+[0m
