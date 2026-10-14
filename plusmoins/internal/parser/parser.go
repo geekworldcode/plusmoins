@@ -27,7 +27,7 @@ func ParseGuess(input string, max int) (int, error) {
 		return 0, ErrEmpty
 	}
 	switch strings.ToLower(s) {
-	case "q", "quit", "quitter":
+	case "q", "Q", "quit", "quitter":
 		return 0, ErrQuit
 	}
 	n, err := strconv.Atoi(s)
