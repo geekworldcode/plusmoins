@@ -3,10 +3,14 @@ package main
 import (
 	"errors"
 	"flag"
+	"os"
 	"plusmoins/internal/game"
 	"plusmoins/internal/parser"
+	"plusmoins/internal/score"
 	askui "plusmoins/internal/ui/console/ask"
 	errorui "plusmoins/internal/ui/console/showerror"
+	fatalui "plusmoins/internal/ui/console/showfatal"
+	recordui "plusmoins/internal/ui/console/showrecord"
 	resultui "plusmoins/internal/ui/console/showresult"
 	welcomeui "plusmoins/internal/ui/console/welcome"
 )
@@ -14,8 +18,13 @@ import (
 func main() {
 	var max = flag.Int("max", 100, "la borne haute de la valeur à deviner (int)")
 	flag.Parse()
+	best, err := score.Load(scoreFile)
+	if err != nil {
+		fatal(err)
+	}
 	g := game.New(*max)
 	welcomeui.Welcome(*max)
+	recordui.ShowRecord(best)
 
 	for {
 		text, err := askui.Ask()
@@ -36,7 +45,19 @@ func main() {
 		resultui.ShowResult(result, g.Attempts)
 
 		if result == game.Win {
+			if best == 0 || g.Attempts < best {
+				if err := score.Save(scoreFile, g.Attempts); err != nil {
+					fatal(err)
+				}
+			}
 			return
 		}
 	}
+}
+
+const scoreFile = "record.txt"
+
+func fatal(err error) {
+	fatalui.ShowFatal(err)
+	os.Exit(1)
 }
