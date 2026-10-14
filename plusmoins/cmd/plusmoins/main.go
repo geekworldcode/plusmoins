@@ -17,12 +17,16 @@ import (
 
 func main() {
 	var max = flag.Int("max", 100, "la borne haute de la valeur à deviner (int)")
+	var secret = flag.Int("secret", 0, "impose le nombre secret, pour les tests (0 : au hasard)")
 	flag.Parse()
 	best, err := score.Load(scoreFile)
 	if err != nil {
 		fatal(err)
 	}
 	g := game.New(*max)
+	if *secret != 0 {
+		g = game.NewWithSecret(*secret)
+	}
 	welcomeui.Welcome(*max)
 	recordui.ShowRecord(best)
 

@@ -19,6 +19,10 @@ func New(max int) *Game {
 	return &Game{secret: rand.IntN(max) + 1}
 }
 
+func NewWithSecret(secret int) *Game {
+	return &Game{secret: secret}
+}
+
 func (g *Game) Guess(n int) Result {
 	// À vous :
 	g.Attempts += 1
